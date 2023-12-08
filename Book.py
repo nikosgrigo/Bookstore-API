@@ -6,8 +6,8 @@ import csv
 class Book():
 
     #-------------BUG--------------
-    def get_all_books_from_list():
-
+    def get_all_books_from_list(self):
+        f = f.File()
         all_books_info = f.read_file('./data/Books.csv','r')
         all_rating_info = f.read_file('./data/Ratings.csv','r')
    
@@ -72,6 +72,7 @@ class Book():
         data.append(formatted_date)
 
         #Add new row to file or DB
+        f = f.File()
         f.write_file("./data/RentedBooks.csv",data)
 
 
