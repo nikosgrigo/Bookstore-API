@@ -47,6 +47,31 @@ def rent_book(bookDict,dt_all_books,dt_rented_books):
 
    print(dt_rented_books)
 
+def return_book(book,all_books_df,all_rented_df):
+   rented_date = book.get('Date')              #get rented date 
+
+   date = datetime.datetime.now()      
+   end_date = date.strftime('%Y-%m-%d')
+
+   #2.Calculate rental fee based on rented days
+   rental_fee = calculate_rental_fee(rented_date,end_date)
+
+
+   #Store fee for later use
+   old_rental_fee = book.get('RentalFee')
+   old_rental_fee += rental_fee
+   all_rented_df.loc[all_rented_df.ISBN == book.get('ISBN'),'RentalFee'] = old_rental_fee
+
+   #Update Availability to True on Book.csv
+   all_books_df.loc[all_books_df.ISBN == book.get('ISBN'),'Available'] = True
+
+   # Write the DataFrame to a CSV file
+   all_rented_df.to_csv('./data/RentedBooks.csv', index=False)
+   all_books_df.to_csv('./data/Books.csv', index=False)
+
+   return rental_fee
+
+
 def days_between(d1, d2):
    dt0 = pd.to_datetime(d1, format = '%Y-%m-%d')
    dt1 = pd.to_datetime(d2, format = '%Y-%m-%d')

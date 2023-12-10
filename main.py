@@ -68,39 +68,16 @@ def set_book_as_rented(id):
       return General.send_response("Book rented successfully","success",200)
    
 
-def return_book(book):
-   rented_date = book.get('Date')              #get rented date 
-
-   date = datetime.datetime.now()      
-   end_date = date.strftime('%Y-%m-%d')
-
-   #2.Calculate rental fee based on rented days
-   rental_fee = Book.calculate_rental_fee(rented_date,end_date)
-
-
-   #Store fee for later use
-   old_rental_fee = book.get('RentalFee')
-   old_rental_fee += rental_fee
-   all_rented_df.loc[all_rented_df.ISBN == book.get('ISBN'),'RentalFee'] = old_rental_fee
-
-   #Update Availability to True on Book.csv
-   all_books_df.loc[all_books_df.ISBN == book.get('ISBN'),'Available'] = True
-
-   # Write the DataFrame to a CSV file
-   all_rented_df.to_csv('./data/RentedBooks.csv', index=False)
-   all_books_df.to_csv('./data/Books.csv', index=False)
-
-   return rental_fee
-
 
 # Return a rented book and calculate the rental fee based on the number of days rented.
 @app.route('/return/<id>',methods = ['PUT'])
 def get_rented_book(id):
-      #Find book
+
       result = Book.get_book_from_list_by_identifier("ISBN",all_rented,id)
-      print(result)
+
       if(result):
-         rental_fee = return_book(result)
+         rental_fee = Book.return_book(result,all_books_df,all_rented_df)
+
          return Response(json.dumps({"status":"success","status code":200,"message": "Book returned successfully", "rental_fee": rental_fee}), content_type='application/json', status=200)
       return Response(json.dumps({"status":"error","status code":400,"message": "Book not found or not currently rented"}), content_type='application/json', status=400)
 
@@ -111,7 +88,7 @@ def get_all_rented_books_for_period():
       
       start_date,end_date = General.check_url_date_args(request.args)
 
-      data = Book.get_book_list_by_range(all_rented_books,start_date,end_date)
+      data = Book.get_book_list_by_range(all_rented,start_date,end_date)
 
       return General.send_response(data,"success",200) 
 
